@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Sliders</title>
+    <link rel="stylesheet" href="/JS DOM/style.css">
+</head>
+<body>
+    <!-- Стандартный слайдер -->
+    <div class="slider-group">
+        <div class="slider-title">Стандартный слайдер</div>
+        <div class="native-slider">
+            <output for="fader" id="volume">0</output>
+            <input type="range" id="fader" min="0" max="600" value="0" step="1">
+        </div>
+    </div>
+
+    <!-- Кастомный слайдер -->
+    <div class="slider-group">
+        <div class="slider-title">Кастомный слайдер</div>
+        <div class="custom-slider">
+            <div class="slider-track"></div>
+            <div class="slider-marks" id="marksContainer"></div>
+            <div class="slider-thumb"></div>
+            <div class="slider-value">50</div>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация стандартного слайдера
+        const nativeSlider = document.querySelector('#fader');
+        const output = document.querySelector('#volume');
+
+        nativeSlider.addEventListener('input', (e) => {
+            const value = e.target.value;
+            output.textContent = value;
+            output.style.left = `${(value / 600) * 100}%`;
+        });
+
+        // Инициализация кастомного слайдера
+        class CustomSlider {
+            constructor(container) {
+                this.container = container;
+                this.track = container.querySelector('.slider-track');
+                this.thumb = container.querySelector('.slider-thumb');
+                this.valueDisplay = container.querySelector('.slider-value');
+                this.marksContainer = container.querySelector('.slider-marks');
+                
+                this.initMarks();
+                this.initEvents();
+                this.setInitialPosition();
+            }
+
+            initMarks() {
+                const marks = [0, 20, 40, 60, 80, 100];
+                marks.forEach(value => {
+                    const mark = document.createElement('div');
+                    mark.className = 'mark';
+                    mark.style.left = `${value}%`;
+                    
+                    const label = document.createElement('div');
+                    label.className = 'mark-label';
+                    label.textContent = value;
+                    label.style.left = `${value}%`;
+                    
+                    this.marksContainer.appendChild(mark);
+                    this.marksContainer.appendChild(label);
+                });
+            }
+
+            initEvents() {
+                this.thumb.addEventListener('mousedown', () => {
+                    this.isDragging = true;
+                });
+                
+                document.addEventListener('mousemove', (e) => {
+                    if (!this.isDragging) return;
+                    this.moveAt(e.clientX);
+                });
+                
+                document.addEventListener('mouseup', () => {
+                    this.isDragging = false;
+                });
+                
+                this.track.addEventListener('click', (e) => {
+                    this.moveAt(e.clientX);
+                });
+            }
+
+            setInitialPosition() {
+                const initialValue = 50;
+                this.thumb.style.left = `${initialValue}%`;
+                this.valueDisplay.textContent = initialValue;
+                this.valueDisplay.style.left = `${initialValue}%`;
+            }
+
+            moveAt(clientX) {
+                const trackRect = this.track.getBoundingClientRect();
+                let newLeft = (clientX - trackRect.left) / trackRect.width;
+                newLeft = Math.max(0, Math.min(1, newLeft));
+                
+                this.thumb.style.left = `${newLeft * 100}%`;
+                
+                const value = Math.round(newLeft * 100);
+                this.valueDisplay.textContent = value;
+                this.valueDisplay.style.left = `${newLeft * 100}%`;
+                
+                this.valueDisplay.classList.toggle('hidden', value === 0);
+            }
+        }
+
+        // Создание экземпляра кастомного слайдера
+        new CustomSlider(document.querySelector('.custom-slider'));
+    </script>
+</body>
+</html>
